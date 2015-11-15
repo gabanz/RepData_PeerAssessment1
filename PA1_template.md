@@ -5,16 +5,26 @@ output:
     keep_md: true
 ---
 
-```{r header}
+
+```r
 #Header code, setup required libraries
 library(ggplot2)
 library(plyr)
 ```
 
 ## Loading and preprocessing the data
-```{r preparation}
+
+```r
 #unzip file
 unzip("./activity.zip", overwrite = FALSE)
+```
+
+```
+## Warning in unzip("./activity.zip", overwrite = FALSE): not overwriting file
+## './activity.csv
+```
+
+```r
 #read data from file
 activity<-read.csv("activity.csv",colClasses=c("integer","Date","integer"))
 #question1
@@ -25,15 +35,15 @@ stepsperday<-ddply(activity, c("date"),summarise,
 stepsper5min<-ddply(activity, c("interval"),summarise,
                     meansteps = mean(steps,na.rm=TRUE)
                     )
-
 ```
 
 ## What is mean total number of steps taken per day?
 
-The mean total number of steps taken per day is `r mean(stepsperday$totalsteps, na.rm=TRUE)`. 
-The median number of steps taken per day is `r median(stepsperday$totalsteps, na.rm=TRUE)`.
+The mean total number of steps taken per day is 9354.2295082. 
+The median number of steps taken per day is 10395.
 
-```{r histogram1}
+
+```r
 histogram<-ggplot(stepsperday,aes(x=totalsteps))+geom_histogram()+
   xlab("Total number of steps")+
   ggtitle("Histogram of total steps in one day")+
@@ -41,8 +51,11 @@ histogram<-ggplot(stepsperday,aes(x=totalsteps))+geom_histogram()+
 print(histogram)
 ```
 
+![plot of chunk histogram1](figure/histogram1-1.png) 
+
 ## What is the average daily activity pattern?
-```{r dailypattern,warning=FALSE}
+
+```r
 lineplot<-ggplot(stepsper5min,aes(x=interval,y=meansteps))+geom_line()+
   ggtitle("Average steps for each 5-min interval")+
   ylab("Mean steps")+
@@ -50,24 +63,29 @@ lineplot<-ggplot(stepsper5min,aes(x=interval,y=meansteps))+geom_line()+
 print(lineplot)
 ```
 
-The 5-minute interval with the highest average count of steps is interval #`r stepsper5min[which(stepsper5min$meansteps==max(stepsper5min$meansteps)), "interval"]` with a mean of `r stepsper5min[which(stepsper5min$meansteps==max(stepsper5min$meansteps)), "meansteps"]` steps.  
+![plot of chunk dailypattern](figure/dailypattern-1.png) 
+
+The 5-minute interval with the highest average count of steps is interval #835 with a mean of 206.1698113 steps.  
 
 ## Imputing missing values
 
-There are `r nrow(activity)-sum(complete.cases(activity))` incomplete records, unevenly distributed through the dataset.
+There are 2304 incomplete records, unevenly distributed through the dataset.
 
-```{r histogram1.1}
+
+```r
 hist(which(complete.cases(activity)),
      main="Count of complete cases in chronological order",
      xlab="Observation number",
      ylab="Count of complete cases"
      )
-
 ```
+
+![plot of chunk histogram1.1](figure/histogram1.1-1.png) 
  
 Interpolation is done by using the average of the previous valid observation and the next valid observation, or the average of the 5-minutes interval if there is no valid previous/next observation. 
  
-```{r interpolation strategy}
+
+```r
 #question3
 interpolation <- function(rownumber){
   prevrow=rownumber;
@@ -93,7 +111,8 @@ for(n in 1:nrow(activity)){
 }
 ```
 
-```{r histogram2}
+
+```r
 stepsperday2<-merge(
   ddply(activity_imputedNA, c("date"),summarise,
         totalsteps2=sum(steps,na.rm=TRUE)
@@ -109,12 +128,15 @@ histogram2<-ggplot(stepsperday2,aes(x=totalsteps2))+
 print(histogram2)
 ```
 
-The mean and median total steps (NA-omitted) are `r mean(stepsperday2$totalsteps,na.rm=TRUE)` and `r median(stepsperday2$totalsteps,na.rm=TRUE)`.
-The mean and median total steps (NA-imputed) are  `r mean(stepsperday2$totalsteps2,na.rm=TRUE)` and `r median(stepsperday2$totalsteps2,na.rm=TRUE)`. 
+![plot of chunk histogram2](figure/histogram2-1.png) 
+
+The mean and median total steps (NA-omitted) are 9354.2295082 and 10395.
+The mean and median total steps (NA-imputed) are  9707.219301 and 1.0571 &times; 10<sup>4</sup>. 
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
-```{r weekends}
+
+```r
 #question4
 workdays= c("Monday","Tuesday","Wednesday","Thursday","Friday")
 
@@ -133,5 +155,7 @@ lineplot2<-ggplot(stepsperinterval_splitweekends,aes(x=interval,y=meansteps))+
   xlab("Interval number")
 print(lineplot2)
 ```
+
+![plot of chunk weekends](figure/weekends-1.png) 
 
 There seems to be higher activity on the weekends, particularly in the middle of the day, although it is lower early in the morning just after waking up.
